@@ -3,15 +3,26 @@ import { StatusCodes } from "http-status-codes";
 import * as stockTransactionService from "@/api/services/stockTransaction.service.ts";
 import { InsufficientStockError } from "@/api/services/stockTransaction.service.ts";
 import { CreateStockTransactionInput, GetStockTransactionsQuery } from "@/api/validators/stockTransaction.validator.ts";
+import { AuthenticationError } from "@/errors/AuthenticationError.ts";
 
 // Handler to create a new stock transaction
 export const createStockTransactionHandler = async (req: Request<{}, {}, CreateStockTransactionInput>, res: Response, next: NextFunction): Promise<void> => {
     try {
-        // TODO: Later, get userId from authenticated request (e.g., req.user.id)
-        // For now, it might be passed in the body or left null
         const transactionData = req.body;
+        const authenticatedUser = req.user;
 
-        const newTransaction = await stockTransactionService.createStockTransaction(transactionData);
+        if (!authenticatedUser) {
+            // Should be caught by requireAuth, but belts and braces
+            return next(new AuthenticationError("User not authenticated."));
+        }
+
+        // Override or set userId from the authenticated user
+        const dataWithAuthenticatedUser = {
+            ...transactionData,
+            userId: authenticatedUser.id, // Use the authenticated user's ID
+        };
+
+        const newTransaction = await stockTransactionService.createStockTransaction(dataWithAuthenticatedUser);
         res.status(StatusCodes.CREATED).json(newTransaction);
     } catch (error) {
         // Handle specific errors from the service
