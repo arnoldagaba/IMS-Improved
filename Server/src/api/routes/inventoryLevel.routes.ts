@@ -1,35 +1,26 @@
 import { Router } from "express";
+import { Role } from "@prisma/client";
 import * as inventoryLevelController from "@/api/controllers/inventoryLevel.controller.ts";
 import { validateRequest } from "@/api/middleware/validateRequest.ts";
 import { inventoryLevelParamsSchema, specificInventoryLevelParamsSchema } from "@/api/validators/inventoryLevel.validator.ts";
 import { requireAuth } from "../middleware/requireAuth.ts";
+import { checkRole } from "../middleware/checkRole.ts";
 
 const router = Router();
 
+// Apply auth to ALL inventory level routes
 router.use(requireAuth);
 
-// GET /api/v1/inventory-levels - Get all levels (optional query filters: ?itemId=...&locationId=...)
-// Note: Query param validation can be added to inventoryLevelParamsSchema if needed
-router.get("/", inventoryLevelController.getAllInventoryLevelsHandler);
+// Apply role checks (Allow both ADMIN and STAFF for all read operations)
+const commonRoles = [Role.ADMIN, Role.STAFF];
 
-// GET /api/v1/inventory-levels/item/:itemId - Get levels for a specific item
-router.get(
-    "/item/:itemId",
-    validateRequest(inventoryLevelParamsSchema), // Validates itemId in params
-    inventoryLevelController.getInventoryLevelsByItemHandler,
-);
-
-// GET /api/v1/inventory-levels/location/:locationId - Get levels for a specific location
-router.get(
-    "/location/:locationId",
-    validateRequest(inventoryLevelParamsSchema), // Validates locationId in params
-    inventoryLevelController.getInventoryLevelsByLocationHandler,
-);
-
-// GET /api/v1/inventory-levels/item/:itemId/location/:locationId - Get specific level
+router.get("/", checkRole(commonRoles), inventoryLevelController.getAllInventoryLevelsHandler);
+router.get("/item/:itemId", checkRole(commonRoles), validateRequest(inventoryLevelParamsSchema), inventoryLevelController.getInventoryLevelsByItemHandler);
+router.get("/location/:locationId", checkRole(commonRoles), validateRequest(inventoryLevelParamsSchema), inventoryLevelController.getInventoryLevelsByLocationHandler);
 router.get(
     "/item/:itemId/location/:locationId",
-    validateRequest(specificInventoryLevelParamsSchema), // Validates both params
+    checkRole(commonRoles),
+    validateRequest(specificInventoryLevelParamsSchema),
     inventoryLevelController.getSpecificInventoryLevelHandler,
 );
 
