@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "target": "ES2022", // Target modern ECMAScript features
+    "allowImportingTsExtensions": true, // Allow importing .ts files without specifying the extension
+    "resolveJsonModule": true, // Include modules imported with .json extension
+    "moduleDetection": "force", // Treat files as modules even if no import/export
+    "isolatedModules": true, // Ensure safer Babel compilation if used later
+    "forceConsistentCasingInFileNames": true, // Ensure consistent casing in imports
+
+    /* Strictness */
+    "noEmit": true, // Do not emit output (useful for type-checking only)
+    "strict": true, // Enable all strict type-checking options
+    "noUncheckedIndexedAccess": true, // Prevent unsafe indexing
+    "noImplicitAny": true, // Raise error on expressions and declarations with an implied 'any' type.
+
+    /* Module Resolution */
+    "module": "NodeNext", // Use Node.js's next-gen module system
+    "moduleResolution": "NodeNext", // How modules get resolved (important for ES Modules)
+    "baseUrl": "./", // Optional: Allows non-relative imports
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ] // Optional: Path mapping for cleaner imports
+    },
+
+    /* Emit */
+    "outDir": "./dist", // Output directory for compiled JavaScript
+    "sourceMap": true, // Generate source maps for debugging
+
+    /* Linting */
+    "noUnusedLocals": true, // Report errors on unused local variables.
+    "noUnusedParameters": true, // Report errors on unused parameters.
+    "noFallthroughCasesInSwitch": true // Report errors for fallthrough cases in switch statement.
+  },
+  "include": [
+    "src/**/*.ts"
+  ], // Which files TypeScript should compile
+  "exclude": [
+    "node_modules",
+    "dist"
+  ] // Which files/directories to ignore
+}

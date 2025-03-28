@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment Variables
+.env
+.env*.local
+.env*.development*
+.env*.test*
+.env*.production*
+!.env.example # You might want to commit an example file
+
+# TypeScript / Build Output
+dist/
+*.tsbuildinfo
+
+# Prisma
+prisma/migrations/*.sql 
+# Keep the migration history folder, but ignore generated SQL if desired (optional, many commit the SQL too)
+# Keep schema.prisma in version control!
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Package Lock
+package-lock.json

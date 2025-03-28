@@ -1,0 +1,156 @@
+// prisma/schema.prisma
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // Specifies we are using MySQL
+  url      = env("DATABASE_URL") // Loads connection string from .env
+  // relationMode = "prisma" // Optional: Recommended for new projects, enforces relation integrity at the Prisma level. Add if needed.
+}
+
+// --- Enums ---
+
+// Defines user roles
+enum Role {
+  ADMIN // Full access
+  STAFF // Limited access (e.g., manage inventory but not users)
+}
+
+// Defines the type of stock movement
+enum TransactionType {
+  PURCHASE_RECEIVING // Stock in from supplier
+  SALES_SHIPMENT // Stock out to customer
+  ADJUSTMENT_IN // Manual increase (e.g., finding stock)
+  ADJUSTMENT_OUT // Manual decrease (e.g., damage, loss)
+  TRANSFER_IN // Stock received from another location (future)
+  TRANSFER_OUT // Stock sent to another location (future)
+  INITIAL_STOCK // Setting up initial quantities
+}
+
+// --- Models ---
+
+// User Model: Represents users who can log in and interact with the system
+model User {
+  id        String   @id @default(cuid()) // Unique ID (using CUID)
+  username  String   @unique // Unique username for login
+  email     String   @unique // Unique email
+  password  String // Hashed password (NEVER store plain text)
+  firstName String? // Optional first name
+  lastName  String? // Optional last name
+  role      Role     @default(STAFF) // Default role is STAFF
+  isActive  Boolean  @default(true) // To enable/disable users
+  createdAt DateTime @default(now()) // Timestamp of creation
+  updatedAt DateTime @updatedAt // Timestamp of last update
+
+  // Relation: A user can perform many stock transactions
+  stockTransactions StockTransaction[]
+
+  @@map("users") // Maps to the 'users' table in the database
+}
+
+// Category Model: For organizing items
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique // Category name must be unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation: A category can have many items
+  items Item[]
+
+  @@map("categories")
+}
+
+// Item Model: Represents the products/materials being managed
+model Item {
+  id                String  @id @default(cuid())
+  sku               String  @unique // Stock Keeping Unit - unique business identifier
+  name              String
+  description       String?
+  unitOfMeasure     String // e.g., 'pcs', 'kg', 'liter', 'box'
+  lowStockThreshold Int? // Optional threshold to trigger low stock warnings
+  imageUrl          String? // URL for item image
+
+  categoryId String // Foreign key for Category
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade) // Relation to Category (Restrict delete if items exist)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation: An item can exist in multiple inventory levels (one per location)
+  inventoryLevels   InventoryLevel[]
+  // Relation: An item can be part of many stock transactions
+  stockTransactions StockTransaction[]
+
+  @@index([categoryId]) // Index on foreign key for performance
+  @@map("items")
+}
+
+// Location Model: Represents physical or logical places where inventory is stored (e.g., warehouses, shelves)
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique // Location name must be unique
+  address   String?
+  isPrimary Boolean  @default(false) // Is this the main/default location?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation: A location holds multiple inventory levels (one per item)
+  inventoryLevels   InventoryLevel[]
+  // Relation: A location is involved in many stock transactions
+  stockTransactions StockTransaction[]
+
+  @@map("locations")
+}
+
+// Inventory Level Model: Tracks the quantity of a specific item at a specific location
+model InventoryLevel {
+  id              String    @id @default(cuid())
+  quantity        Int       @default(0) // Current quantity on hand. Cannot be negative.
+  lastRestockedAt DateTime? // When stock was last added
+
+  itemId     String // Foreign key for Item
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade, onUpdate: Cascade) // Relation to Item (Cascade delete if item is deleted)
+  locationId String // Foreign key for Location
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade) // Relation to Location (Cascade delete if location is deleted)
+
+  updatedAt DateTime @updatedAt // Timestamp of last quantity update
+
+  @@unique([itemId, locationId]) // An item can only have one inventory record per location
+  @@index([itemId])
+  @@index([locationId])
+  @@map("inventory_levels")
+}
+
+// Stock Transaction Model: Records every change in inventory quantity for audit purposes
+model StockTransaction {
+  id              String          @id @default(cuid())
+  changeQuantity  Int // How much the quantity changed (+ve for increase, -ve for decrease)
+  newQuantity     Int // The quantity *after* this transaction occurred (useful for history)
+  type            TransactionType // The reason for the change
+  transactionDate DateTime        @default(now()) // When the transaction happened
+  notes           String? // Optional notes about the transaction
+  referenceId     String? // Optional: ID linking to related documents (e.g., Purchase Order ID, Sales Order ID)
+
+  itemId     String // Foreign key for Item
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Restrict, onUpdate: Cascade) // Relation to Item (Don't delete item if transactions exist)
+  locationId String // Foreign key for Location
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict, onUpdate: Cascade) // Relation to Location (Don't delete location if transactions exist)
+  userId     String? // Optional: Foreign key for User who performed the action
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade) // Relation to User (Set null if user is deleted)
+
+  createdAt DateTime @default(now()) // When the record was created
+
+  @@index([itemId])
+  @@index([locationId])
+  @@index([userId])
+  @@index([type])
+  @@index([transactionDate])
+  @@map("stock_transactions")
+}
