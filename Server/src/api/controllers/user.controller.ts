@@ -4,6 +4,7 @@ import * as userService from "@/api/services/user.service.ts";
 import { CreateUserInput, UpdateUserInput } from "@/api/validators/user.validator.ts";
 import { ForbiddenError } from "@/errors/ForbiddenError.ts";
 import { NotFoundError } from "@/errors/NotFoundError.ts";
+import { User } from "@prisma/client";
 
 // Only ADMINs should create users
 export const createUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction): Promise<void> => {
@@ -57,7 +58,7 @@ export const getUserByIdHandler = async (req: Request<{ id: string }>, res: Resp
 export const updateUserHandler = async (req: Request<{ id: string }, {}, UpdateUserInput>, res: Response, next: NextFunction): Promise<void> => {
     const userIdToUpdate = req.params.id;
     const updateData = req.body;
-    const requestingUser = req.user;
+    const requestingUser = req.user as User;
 
     // --- Authorization Logic Example ---
     // ADMIN can update anyone

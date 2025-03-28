@@ -1,26 +1,21 @@
 import { Router } from "express";
+import { Role } from "@prisma/client";
 import * as itemController from "@/api/controllers/item.controller.ts";
 import { validateRequest } from "@/api/middleware/validateRequest.ts";
-import { createItemSchema, updateItemSchema, getItemByIdSchema, deleteItemSchema } from "@/api/validators/item.validator.ts";
 import { requireAuth } from "@/api/middleware/requireAuth.ts";
+import { checkRole } from "@/api/middleware/checkRole.ts";
+import { createItemSchema, updateItemSchema, getItemByIdSchema, deleteItemSchema } from "@/api/validators/item.validator.ts";
 
 const router = Router();
 
+// Apply auth to ALL item routes
 router.use(requireAuth);
 
-// POST /api/v1/items - Create a new item
-router.post("/", validateRequest(createItemSchema), itemController.createItemHandler);
-
-// GET /api/v1/items - Get all items
-router.get("/", itemController.getAllItemsHandler);
-
-// GET /api/v1/items/:id - Get a specific item by ID
-router.get("/:id", validateRequest(getItemByIdSchema), itemController.getItemByIdHandler);
-
-// PUT /api/v1/items/:id - Update an item by ID
-router.put("/:id", validateRequest(updateItemSchema), itemController.updateItemHandler);
-
-// DELETE /api/v1/items/:id - Delete an item by ID
-router.delete("/:id", validateRequest(deleteItemSchema), itemController.deleteItemHandler);
+// Apply specific role checks
+router.post("/", checkRole([Role.ADMIN, Role.STAFF]), validateRequest(createItemSchema), itemController.createItemHandler); // Allow both
+router.get("/", checkRole([Role.ADMIN, Role.STAFF]), itemController.getAllItemsHandler); // Allow both
+router.get("/:id", checkRole([Role.ADMIN, Role.STAFF]), validateRequest(getItemByIdSchema), itemController.getItemByIdHandler); // Allow both
+router.put("/:id", checkRole([Role.ADMIN, Role.STAFF]), validateRequest(updateItemSchema), itemController.updateItemHandler); // Allow both
+router.delete("/:id", checkRole([Role.ADMIN]), validateRequest(deleteItemSchema), itemController.deleteItemHandler); // ADMIN only
 
 export default router;
