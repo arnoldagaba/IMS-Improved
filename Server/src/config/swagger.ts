@@ -60,8 +60,8 @@ const options: swaggerJsdoc.Options = {
     swaggerDefinition,
     // Path to the API docs files (routes, and potentially schema/validation files)
     apis: [
-        "./src/routes/*.routes.ts", // Process all route files
-        "./src/validation/*.validation.ts", // Process validation files for schema definitions
+        "./src/api/routes/*.routes.ts", // Process all route files
+        "./src/api/validators/*.validator.ts", // Process validation files for schema definitions
         // Add other files if you define schemas elsewhere (e.g., 'src/models/*.ts')
     ],
 };
