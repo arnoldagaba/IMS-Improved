@@ -2,16 +2,45 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import { StatusCodes } from "http-status-codes";
 import swaggerUi from "swagger-ui-express";
+import { pinoHttp } from "pino-http";
 import env from "@/config/env.ts";
 import mainApiRouter from "@/api/routes/index.ts";
 import { errorHandler } from "@/api/middleware/errorHandler.ts";
 import swaggerSpec from "@/config/swagger.ts";
+import logger from "@/utils/logger.ts";
 
 // For env File
 dotenv.config();
 
 const app: Express = express();
 const port = env.PORT;
+
+// --- Request Logging Middleware ---
+// Must be placed BEFORE routes but AFTER static file middleware (like Swagger UI) if body logging is needed.
+// Place it early to capture as much as possible.
+app.use(
+    pinoHttp({
+        logger: logger,
+        // Optional: Customize logging further
+        serializers: {
+            // Example: Customize serialization
+            req(req: Request) {
+                req.body = req.body;
+                return req;
+            },
+        },
+        // Customize log message format (optional)
+        customSuccessMessage: function (req: Request, res: Response) {
+            if (res.statusCode === 404) {
+                return "Resource not found";
+            }
+            return `${req.method} ${req.url} completed ${res.statusCode}`;
+        },
+        customErrorMessage: function (req, res, err) {
+            return `${req.method} ${req.url} errored ${res.statusCode} with ${err.message}`;
+        },
+    }),
+);
 
 // --- Core Middleware ---
 app.use(express.json()); // Parse JSON bodies
@@ -24,12 +53,16 @@ app.get("/", (_req: Request, res: Response) => {
 
 // --- API Documentation Route ---
 // Serve Swagger UI at /api-docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    // Optional: Custom options for Swagger UI
-    explorer: true, // Enable search bar
-    customSiteTitle: "Inventory API Docs",
-    // customfavIcon: "/favicon.ico", // Path to your favicon
-}));
+app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+        // Optional: Custom options for Swagger UI
+        explorer: true, // Enable search bar
+        customSiteTitle: "Inventory API Docs",
+        // customfavIcon: "/favicon.ico", // Path to your favicon
+    }),
+);
 
 // --- API Routes ---
 app.use("/api/v1", mainApiRouter);
@@ -44,8 +77,8 @@ app.use(errorHandler);
 
 // Start Server
 const server = app.listen(port, () => {
-    console.log(`[Server]: Server is running at http://localhost:${port}`);
-    console.log(`Current environment: ${env.NODE_ENV}`);
+    logger.info(`[Server]: Server is running at http://localhost:${port}`);
+    logger.info(`Current environment: ${env.NODE_ENV}`);
 });
 
 // --- Graceful Shutdown --- (Optional but recommended)
@@ -54,25 +87,25 @@ const SHUTDOWN_TIMEOUT = 5000; // 5 seconds
 
 signals.forEach((signal) => {
     process.on(signal, async () => {
-        console.log(`\nReceived ${signal}, closing server gracefully...`);
+        logger.info(`\nReceived ${signal}, closing server gracefully...`);
 
         // Force exit after timeout
         const forceExit = setTimeout(() => {
-            console.error("Could not close connections in time, forcefully shutting down");
+            logger.error("Could not close connections in time, forcefully shutting down");
             process.exit(1);
         }, SHUTDOWN_TIMEOUT);
 
         server.close(async () => {
-            console.log("HTTP server closed.");
+            logger.info("HTTP server closed.");
             // Disconnect Prisma Client
             try {
                 const prisma = (await import("@/config/prisma.ts")).default; // Dynamically import prisma instance
                 await prisma.$disconnect();
-                console.log("Prisma client disconnected.");
+                logger.info("Prisma client disconnected.");
                 clearTimeout(forceExit);
                 process.exit(0); // Exit process
             } catch (e) {
-                console.error("Error disconnecting Prisma client:", e);
+                logger.error("Error disconnecting Prisma client:", e);
                 clearTimeout(forceExit);
                 process.exit(1);
             }
