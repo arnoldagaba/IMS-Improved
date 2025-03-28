@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Prisma } from "@prisma/client";
 import env from "@/config/env.ts";
+import { ApiError } from "@/errors/ApiError.ts";
 
 // Interface for a standardized error response
 interface ErrorResponse {
@@ -23,8 +24,13 @@ export const errorHandler = (
         message: "An unexpected error occurred. Please try again later.",
     };
 
-    // Customize response based on error type
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err instanceof ApiError) {
+        statusCode = err.statusCode;
+        response.message = err.message;
+        // Could add more specific handling based on err.isOperational if needed
+    }
+    // ---- Handle prisma errors ----
+    else if (err instanceof Prisma.PrismaClientKnownRequestError) {
         response.code = err.code;
         switch (err.code) {
             case "P2002": // Unique constraint violation
@@ -42,6 +48,7 @@ export const errorHandler = (
                     statusCode = StatusCodes.CONFLICT; // 409
                     response.message = `Cannot delete because the record is still referenced by a ${field}.`;
                 } else {
+                    statusCode = StatusCodes.BAD_REQUEST; // 400
                     response.message = `Invalid reference: The specified ${field} does not exist.`;
                 }
                 break;
@@ -56,19 +63,10 @@ export const errorHandler = (
                 break;
             // Add more specific Prisma error codes as needed
             default:
-                statusCode = StatusCodes.BAD_REQUEST; // Or Internal Server Error for unhandled DB issues
+                statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
                 response.message = "A database error occurred.";
         }
-    } else if (err.message.includes("not found")) {
-        // Catch general "not found" errors from services/controllers
-        statusCode = StatusCodes.NOT_FOUND; // 404
-        response.message = err.message;
-    } else if (err.message.includes("already exists") || err.message.includes("Cannot update")) {
-        // Catch general conflict errors
-        statusCode = StatusCodes.CONFLICT; // 409
-        response.message = err.message;
     }
-    //TODO: Add handling for custom error classes here later (e.g., AuthenticationError, ForbiddenError)
 
     // Include stack trace in development only for debugging
     if (env.NODE_ENV === "development") {
