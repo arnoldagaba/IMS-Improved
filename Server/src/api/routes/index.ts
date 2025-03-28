@@ -11,7 +11,7 @@ const router = Router();
 router.use("/items", itemRoutes);
 router.use('/categories', categoryRoutes);
 router.use("/locations", locationRoutes);
-router.use("inventory-levels", inventoryLevelRoutes);
+router.use("/inventory-levels", inventoryLevelRoutes);
 router.use('/stock-transactions', stockTransactionRoutes); 
 
 export default router;
