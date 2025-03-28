@@ -1,5 +1,60 @@
 import { z } from "zod";
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     Category:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: cuid
+ *           description: Unique identifier for the category
+ *           readOnly: true
+ *         name:
+ *           type: string
+ *           description: Name of the category
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           description: Optional description of the category
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           readOnly: true
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           readOnly: true
+ *       required:
+ *         - id
+ *         - name
+ *
+ *     CreateCategoryInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Name of the category
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           description: Optional description
+ *       required:
+ *         - name
+ *
+ *     UpdateCategoryInput:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *         description:
+ *           type: string
+ *           nullable: true
+ *       minProperties: 1
+ */
+
 export const createCategorySchema = z.object({
     body: z.object({
         name: z.string({ required_error: "Category name is required" }).min(1, "Category name cannot be empty"),

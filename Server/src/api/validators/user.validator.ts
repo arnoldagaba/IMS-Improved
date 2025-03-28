@@ -1,6 +1,109 @@
 import { z } from "zod";
 import { Role } from "@prisma/client";
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: cuid
+ *           description: Unique identifier for the user
+ *           readOnly: true
+ *         username:
+ *           type: string
+ *           description: Unique username for login
+ *           minLength: 3
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         firstName:
+ *           type: string
+ *           nullable: true
+ *           description: User's first name
+ *         lastName:
+ *           type: string
+ *           nullable: true
+ *           description: User's last name
+ *         role:
+ *           type: string
+ *           enum: [ADMIN, MANAGER, STAFF]
+ *           description: User's role in the system
+ *         isActive:
+ *           type: boolean
+ *           description: Whether the user account is active
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           readOnly: true
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           readOnly: true
+ *       required:
+ *         - id
+ *         - username
+ *         - email
+ *         - role
+ *         - isActive
+ *
+ *     CreateUserInput:
+ *       type: object
+ *       properties:
+ *         username:
+ *           type: string
+ *           minLength: 3
+ *         email:
+ *           type: string
+ *           format: email
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *         firstName:
+ *           type: string
+ *           nullable: true
+ *         lastName:
+ *           type: string
+ *           nullable: true
+ *         role:
+ *           type: string
+ *           enum: [ADMIN, MANAGER, STAFF]
+ *           default: STAFF
+ *         isActive:
+ *           type: boolean
+ *           default: true
+ *       required:
+ *         - username
+ *         - email
+ *         - password
+ *
+ *     UpdateUserInput:
+ *       type: object
+ *       properties:
+ *         username:
+ *           type: string
+ *           minLength: 3
+ *         email:
+ *           type: string
+ *           format: email
+ *         firstName:
+ *           type: string
+ *           nullable: true
+ *         lastName:
+ *           type: string
+ *           nullable: true
+ *         role:
+ *           type: string
+ *           enum: [ADMIN, MANAGER, STAFF]
+ *         isActive:
+ *           type: boolean
+ *       minProperties: 1
+ */
+
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters long");
 const roles = Object.values(Role);
 

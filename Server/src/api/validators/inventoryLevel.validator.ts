@@ -1,5 +1,38 @@
 import { z } from "zod";
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     InventoryLevel:
+ *       type: object
+ *       properties:
+ *         itemId:
+ *           type: string
+ *           format: cuid
+ *           description: ID of the item
+ *         locationId:
+ *           type: string
+ *           format: cuid
+ *           description: ID of the location
+ *         quantity:
+ *           type: integer
+ *           description: Current quantity in stock
+ *         item:
+ *           $ref: '#/components/schemas/Item'
+ *         location:
+ *           $ref: '#/components/schemas/Location'
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Last update timestamp
+ *           readOnly: true
+ *       required:
+ *         - itemId
+ *         - locationId
+ *         - quantity
+ */
+
 export const inventoryLevelParamsSchema = z.object({
     params: z.object({
         itemId: z.string().cuid({ message: "Invalid Item ID format" }).optional(),

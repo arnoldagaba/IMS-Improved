@@ -1,6 +1,95 @@
 import { z } from "zod";
 import { TransactionType } from "@prisma/client";
 
+/**
+ * @openapi
+ * components:
+ *   schemas:
+ *     StockTransaction:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: cuid
+ *           description: Unique identifier for the transaction
+ *           readOnly: true
+ *         itemId:
+ *           type: string
+ *           format: cuid
+ *           description: ID of the item involved in the transaction
+ *         locationId:
+ *           type: string
+ *           format: cuid
+ *           description: ID of the location where the transaction occurred
+ *         changeQuantity:
+ *           type: integer
+ *           description: The quantity change (positive for additions, negative for reductions)
+ *         type:
+ *           type: string
+ *           enum: [RECEIPT, ISSUE, ADJUSTMENT, TRANSFER_IN, TRANSFER_OUT]
+ *           description: Type of stock transaction
+ *         notes:
+ *           type: string
+ *           nullable: true
+ *           description: Optional notes about the transaction
+ *         referenceId:
+ *           type: string
+ *           nullable: true
+ *           description: Optional reference ID (e.g., PO number)
+ *         userId:
+ *           type: string
+ *           format: cuid
+ *           nullable: true
+ *           description: ID of the user who performed the transaction
+ *         transactionDate:
+ *           type: string
+ *           format: date-time
+ *           description: When the transaction occurred
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           readOnly: true
+ *       required:
+ *         - itemId
+ *         - locationId
+ *         - changeQuantity
+ *         - type
+ *         - transactionDate
+ *
+ *     CreateStockTransactionInput:
+ *       type: object
+ *       properties:
+ *         itemId:
+ *           type: string
+ *           format: cuid
+ *         locationId:
+ *           type: string
+ *           format: cuid
+ *         changeQuantity:
+ *           type: integer
+ *         type:
+ *           type: string
+ *           enum: [RECEIPT, ISSUE, ADJUSTMENT, TRANSFER_IN, TRANSFER_OUT]
+ *         notes:
+ *           type: string
+ *           nullable: true
+ *         referenceId:
+ *           type: string
+ *           nullable: true
+ *         userId:
+ *           type: string
+ *           format: cuid
+ *           nullable: true
+ *         transactionDate:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - itemId
+ *         - locationId
+ *         - changeQuantity
+ *         - type
+ */
+
 // Helper array of enum values for validation
 const transactionTypes = Object.values(TransactionType);
 
