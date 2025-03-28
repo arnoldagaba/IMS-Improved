@@ -6,7 +6,7 @@ import { requireAuth } from "@/api/middleware/requireAuth.ts";
 import { checkRole } from "@/api/middleware/checkRole.ts";
 import { createStockTransactionSchema, getStockTransactionsSchema } from "@/api/validators/stockTransaction.validator.ts";
 
-const router = Router();
+export const router = Router();
 
 // Apply requireAuth to all transaction routes
 router.use(requireAuth);

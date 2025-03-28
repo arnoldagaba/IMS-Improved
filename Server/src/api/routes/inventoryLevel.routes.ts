@@ -2,8 +2,11 @@ import { Router } from "express";
 import * as inventoryLevelController from "@/api/controllers/inventoryLevel.controller.ts";
 import { validateRequest } from "@/api/middleware/validateRequest.ts";
 import { inventoryLevelParamsSchema, specificInventoryLevelParamsSchema } from "@/api/validators/inventoryLevel.validator.ts";
+import { requireAuth } from "../middleware/requireAuth.ts";
 
 const router = Router();
+
+router.use(requireAuth);
 
 // GET /api/v1/inventory-levels - Get all levels (optional query filters: ?itemId=...&locationId=...)
 // Note: Query param validation can be added to inventoryLevelParamsSchema if needed

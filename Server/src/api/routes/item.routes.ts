@@ -2,8 +2,11 @@ import { Router } from "express";
 import * as itemController from "@/api/controllers/item.controller.ts";
 import { validateRequest } from "@/api/middleware/validateRequest.ts";
 import { createItemSchema, updateItemSchema, getItemByIdSchema, deleteItemSchema } from "@/api/validators/item.validator.ts";
+import { requireAuth } from "@/api/middleware/requireAuth.ts";
 
 const router = Router();
+
+router.use(requireAuth);
 
 // POST /api/v1/items - Create a new item
 router.post("/", validateRequest(createItemSchema), itemController.createItemHandler);
