@@ -1,9 +1,11 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import { StatusCodes } from "http-status-codes";
+import swaggerUi from "swagger-ui-express";
 import env from "@/config/env.ts";
 import mainApiRouter from "@/api/routes/index.ts";
 import { errorHandler } from "@/api/middleware/errorHandler.ts";
+import swaggerSpec from "@/config/swagger.ts";
 
 // For env File
 dotenv.config();
@@ -19,6 +21,15 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.get("/", (_req: Request, res: Response) => {
     res.status(StatusCodes.OK).json({ message: "Inventory Management API is running!" });
 });
+
+// --- API Documentation Route ---
+// Serve Swagger UI at /api-docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    // Optional: Custom options for Swagger UI
+    explorer: true, // Enable search bar
+    customSiteTitle: "Inventory API Docs",
+    // customfavIcon: "/favicon.ico", // Path to your favicon
+}));
 
 // --- API Routes ---
 app.use("/api/v1", mainApiRouter);
