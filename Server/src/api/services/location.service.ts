@@ -1,6 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
 import { CreateLocationInput, UpdateLocationInput } from "@/api/validators/location.validator.ts";
+import logger from "@/utils/logger.ts";
 
 export const createLocation = async (data: CreateLocationInput) => {
     // Ensure only one primary location? Add logic here if needed.
@@ -41,7 +42,7 @@ export const createLocation = async (data: CreateLocationInput) => {
                     throw new Error(`Location with name '${data.name}' already exists.`);
                 }
             }
-            console.error("Error creating location:", error);
+            logger.error("Error creating location:", error);
             throw error;
         }
     }
@@ -114,7 +115,7 @@ export const updateLocation = async (id: string, data: UpdateLocationInput) => {
                 if (error.code === "P2025") throw new Error(`Location with ID ${id} not found.`);
                 if (error.code === "P2002" && error.meta?.target === "locations_name_key") throw new Error(`Location with name '${data.name}' already exists.`);
             }
-            console.error(`Error updating location ${id}:`, error);
+            logger.error(`Error updating location ${id}:`, error);
             throw error;
         }
     } else {
@@ -133,7 +134,7 @@ export const updateLocation = async (id: string, data: UpdateLocationInput) => {
                 if (error.code === "P2025") throw new Error(`Location with ID ${id} not found.`);
                 if (error.code === "P2002" && error.meta?.target === "locations_name_key") throw new Error(`Location with name '${data.name}' already exists.`);
             }
-            console.error(`Error updating location ${id}:`, error);
+            logger.error(`Error updating location ${id}:`, error);
             throw error;
         }
     }
@@ -161,11 +162,11 @@ export const deleteLocation = async (id: string) => {
             // Foreign key constraint violation (P2003) - likely due to existing StockTransactions.
             if (error.code === "P2003") {
                 // Checking meta might be less reliable here
-                console.warn(`Attempted to delete location ${id} which is still referenced by stock transactions.`);
+                logger.warn(`Attempted to delete location ${id} which is still referenced by stock transactions.`);
                 throw new Error(`Cannot delete location ${id} because it is referenced by stock transactions.`);
             }
         }
-        console.error(`Error deleting location ${id}:`, error);
+        logger.error(`Error deleting location ${id}:`, error);
         throw error;
     }
 };

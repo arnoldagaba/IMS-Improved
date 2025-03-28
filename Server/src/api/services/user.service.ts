@@ -4,6 +4,7 @@ import { CreateUserInput, UpdateUserInput } from "@/api/validators/user.validato
 import { hashPassword } from "@/utils/password.util.ts";
 import { ConflictError } from "@/errors/ConflictError.ts";
 import { NotFoundError } from "@/errors/NotFoundError.ts";
+import logger from "@/utils/logger.ts";
 
 // Omit password field from returned user objects
 export const excludePassword = <TUser extends User, Key extends keyof TUser>(
@@ -43,7 +44,7 @@ export const createUser = async (data: CreateUserInput): Promise<Omit<User, "pas
                 }
             }
         }
-        console.error("Error creating user:", error);
+        logger.error("Error creating user:", error);
         throw error; // Re-throw other errors
     }
 };
@@ -105,7 +106,7 @@ export const updateUser = async (id: string, data: UpdateUserInput): Promise<Omi
                 }
             }
         }
-        console.error(`Error updating user ${id}:`, error);
+        logger.error(`Error updating user ${id}:`, error);
         throw error;
     }
 };
@@ -135,7 +136,7 @@ export const deleteUser = async (id: string): Promise<Omit<User, "password">> =>
             // This shouldn't happen due to the check above, but keep for safety
             throw new NotFoundError(`User with ID ${id} not found.`);
         }
-        console.error(`Error deleting user ${id}:`, error);
+        logger.error(`Error deleting user ${id}:`, error);
         throw error;
     }
 };

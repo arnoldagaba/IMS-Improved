@@ -4,6 +4,7 @@ import env from "@/config/env.ts";
 import { Role } from "@prisma/client";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
 import { AuthenticatedUser } from "@/types/express/index.js";
+import logger from "@/utils/logger.ts";
 
 export const requireAuth = (req: Request, _res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;
@@ -30,7 +31,7 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction): v
             !Object.values(Role).includes(decodedPayload.role as Role) // Role must be a valid enum value
         ) {
             // Log the invalid payload for debugging
-            console.error("Invalid JWT payload structure received:", decodedPayload);
+            logger.error("Invalid JWT payload structure received:", decodedPayload);
             // Throw a specific error to be caught below
             throw new Error("Invalid token payload structure");
         }
@@ -53,7 +54,7 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction): v
             return next(new AuthenticationError("Token expired."));
         }
         // Log unexpected errors during verification
-        console.error("Unexpected error during token verification:", error);
+        logger.error("Unexpected error during token verification:", error);
         return next(new AuthenticationError("Failed to authenticate token."));
     }
 };

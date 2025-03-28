@@ -1,6 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
 import { CreateCategoryInput, UpdateCategoryInput } from "@/api/validators/category.validator.ts";
+import logger from "@/utils/logger.ts";
 
 export const createCategory = async (data: CreateCategoryInput) => {
     try {
@@ -17,7 +18,7 @@ export const createCategory = async (data: CreateCategoryInput) => {
                 throw new Error(`Category with name '${data.name}' already exists.`);
             }
         }
-        console.error("Error creating category:", error);
+        logger.error("Error creating category:", error);
         throw error;
     }
 };
@@ -56,7 +57,7 @@ export const updateCategory = async (id: string, data: UpdateCategoryInput) => {
                 throw new Error(`Category with name '${data.name}' already exists.`);
             }
         }
-        console.error(`Error updating category ${id}:`, error);
+        logger.error(`Error updating category ${id}:`, error);
         throw error;
     }
 };
@@ -76,11 +77,11 @@ export const deleteCategory = async (id: string) => {
             }
             // Foreign key constraint violation (P2003) because Items reference this category.
             if (error.code === "P2003" && error.meta?.field_name?.toString().includes("categoryId")) {
-                console.warn(`Attempted to delete category ${id} which still has associated items.`);
+                logger.warn(`Attempted to delete category ${id} which still has associated items.`);
                 throw new Error(`Cannot delete category ${id} because it still has associated items.`);
             }
         }
-        console.error(`Error deleting category ${id}:`, error);
+        logger.error(`Error deleting category ${id}:`, error);
         throw error;
     }
 };

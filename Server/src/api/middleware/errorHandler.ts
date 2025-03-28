@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Prisma } from "@prisma/client";
 import env from "@/config/env.ts";
 import { ApiError } from "@/errors/ApiError.ts";
+import logger from "@/utils/logger.ts";
 
 // Interface for a standardized error response
 interface ErrorResponse {
@@ -17,7 +18,7 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction, // Required signature for Express error handlers
 ): void => {
-    console.error("Error caught by central handler:", err); // Log the full error
+    logger.error("Error caught by central handler:", err); // Log the full error
 
     let statusCode: StatusCodes = StatusCodes.INTERNAL_SERVER_ERROR;
     const response: ErrorResponse = {

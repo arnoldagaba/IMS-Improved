@@ -1,6 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma, TransactionType } from "@prisma/client";
 import { CreateStockTransactionInput, GetStockTransactionsQuery } from "@/api/validators/stockTransaction.validator.ts";
+import logger from "@/utils/logger.ts";
 
 // Custom Error class for insufficient stock
 export class InsufficientStockError extends Error {
@@ -102,7 +103,7 @@ export const createStockTransaction = async (data: CreateStockTransactionInput) 
             }
         }
         // Re-throw InsufficientStockError or other errors for controller/global handler
-        console.error("Error in createStockTransaction service:", error);
+        logger.error("Error in createStockTransaction service:", error);
         throw error;
     }
 };

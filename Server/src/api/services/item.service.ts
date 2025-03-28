@@ -1,6 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
-import { CreateItemInput, UpdateItemInput } from "../validators/item.validator.ts";
+import { CreateItemInput, UpdateItemInput } from "@/api/validators/item.validator.ts";
+import logger from "@/utils/logger.ts";
 
 /**
  * Creates a new item in the database.
@@ -41,7 +42,7 @@ export const createItem = async (data: CreateItemInput) => {
             }
         }
         // Re-throw other errors or handle them as needed
-        console.error("Error creating item:", error);
+        logger.error("Error creating item:", error);
         throw error; // Re-throw for central error handling
     }
 };
@@ -116,7 +117,7 @@ export const updateItem = async (id: string, data: UpdateItemInput) => {
                 throw new Error(`Cannot update: Category with ID ${data.categoryId} not found.`);
             }
         }
-        console.error(`Error updating item ${id}:`, error);
+        logger.error(`Error updating item ${id}:`, error);
         throw error; // Re-throw for central error handling
     }
 };
@@ -143,11 +144,11 @@ export const deleteItem = async (id: string) => {
             }
             // Foreign key constraint violation - deletion is prevented
             if (error.code === "P2003") {
-                console.warn(`Attempted to delete item ${id} which is still referenced by other records (e.g., Stock Transactions).`);
+                logger.warn(`Attempted to delete item ${id} which is still referenced by other records (e.g., Stock Transactions).`);
                 throw new Error(`Cannot delete item ${id} because it is referenced by other records (like stock transactions).`);
             }
         }
-        console.error(`Error deleting item ${id}:`, error);
+        logger.error(`Error deleting item ${id}:`, error);
         throw error; // Re-throw for central error handling
     }
 };
