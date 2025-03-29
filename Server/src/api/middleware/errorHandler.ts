@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Prisma } from "@prisma/client";
 import env from "@/config/env.ts";
 import { ApiError } from "@/errors/ApiError.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 // Interface for a standardized error response
 interface ErrorResponse {

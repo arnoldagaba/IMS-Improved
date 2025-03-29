@@ -1,7 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma, TransactionType } from "@prisma/client";
 import { CreateStockTransactionInput, GetStockTransactionsQuery } from "@/api/validators/stockTransaction.validator.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 // Custom Error class for insufficient stock
 export class InsufficientStockError extends Error {

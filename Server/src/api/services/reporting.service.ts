@@ -1,5 +1,5 @@
 import prisma from "@/config/prisma.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 import { Prisma, TransactionType } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { DateRangeQueryInput } from "@/api/validators/reporting.validator.ts";

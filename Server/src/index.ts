@@ -1,6 +1,6 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
-import cookieParser from "cookie-parser"
+import cookieParser from "cookie-parser";
 import { StatusCodes } from "http-status-codes";
 import swaggerUi from "swagger-ui-express";
 import { pinoHttp } from "pino-http";
@@ -8,7 +8,7 @@ import env from "@/config/env.ts";
 import mainApiRouter from "@/api/routes/index.ts";
 import { errorHandler } from "@/api/middleware/errorHandler.ts";
 import swaggerSpec from "@/config/swagger.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 // For env File
 dotenv.config();

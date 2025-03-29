@@ -1,7 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
 import { CreateCategoryInput, UpdateCategoryInput } from "@/api/validators/category.validator.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 export const createCategory = async (data: CreateCategoryInput) => {
     try {

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/config/prisma.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 /**
  * Finds inventory levels based on optional filtering criteria.
@@ -66,36 +66,39 @@ export const findLowStockLevels = async () => {
                 },
             },
             include: {
-                item: { // Include item details needed for comparison and display
+                item: {
+                    // Include item details needed for comparison and display
                     select: {
                         id: true,
                         sku: true,
                         name: true,
                         unitOfMeasure: true,
-                        lowStockThreshold: true // Need the threshold value
-                    }
+                        lowStockThreshold: true, // Need the threshold value
+                    },
                 },
-                location: { // Include location details
+                location: {
+                    // Include location details
                     select: {
                         id: true,
-                        name: true
-                    }
+                        name: true,
+                    },
                 },
             },
-            orderBy: { // Order potentially by severity (how far below threshold) or item name
-                item: { name: 'asc' }
-            }
+            orderBy: {
+                // Order potentially by severity (how far below threshold) or item name
+                item: { name: "asc" },
+            },
         });
 
         // Filter in application code: quantity <= lowStockThreshold
-        const filteredLowStock = lowStockLevels.filter(level =>
-            // level.item.lowStockThreshold should not be null here due to the 'where' clause, but check for safety
-            level.item.lowStockThreshold !== null && level.quantity <= level.item.lowStockThreshold
+        const filteredLowStock = lowStockLevels.filter(
+            (level) =>
+                // level.item.lowStockThreshold should not be null here due to the 'where' clause, but check for safety
+                level.item.lowStockThreshold !== null && level.quantity <= level.item.lowStockThreshold,
         );
 
         logger.info(`Found ${filteredLowStock.length} inventory levels at or below low stock threshold.`);
         return filteredLowStock;
-
     } catch (error) {
         logger.error({ error }, "Error fetching low stock levels");
         throw error; // Re-throw for central handling

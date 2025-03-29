@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as reportingService from "@/api/services/reporting.service.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 import { DateRangeQueryInput } from "@/api/validators/reporting.validator.ts";
 
 // Handler for Inventory Value Report

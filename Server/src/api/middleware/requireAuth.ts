@@ -4,7 +4,7 @@ import env from "@/config/env.ts";
 import { Role } from "@prisma/client";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
 import { AuthenticatedUser } from "@/types/express/index.js";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 export const requireAuth = (req: Request, _res: Response, next: NextFunction): void => {
     const authHeader = req.headers.authorization;

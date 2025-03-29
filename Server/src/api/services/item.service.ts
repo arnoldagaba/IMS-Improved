@@ -1,7 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
 import { CreateItemInput, UpdateItemInput } from "@/api/validators/item.validator.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 /**
  * Creates a new item in the database.

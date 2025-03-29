@@ -1,7 +1,7 @@
 import prisma from "@/config/prisma.ts";
 import { Prisma } from "@prisma/client";
 import { CreateLocationInput, UpdateLocationInput } from "@/api/validators/location.validator.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 export const createLocation = async (data: CreateLocationInput) => {
     // Ensure only one primary location? Add logic here if needed.
@@ -59,7 +59,7 @@ export const findAllLocations = async () => {
 export const findLocationById = async (id: string) => {
     return await prisma.location.findUnique({
         where: { id },
-        include: { inventoryLevels: true } // Include related data if needed
+        include: { inventoryLevels: true }, // Include related data if needed
     });
 };
 

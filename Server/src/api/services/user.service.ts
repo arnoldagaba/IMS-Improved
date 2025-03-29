@@ -4,7 +4,7 @@ import { CreateUserInput, UpdateUserInput } from "@/api/validators/user.validato
 import { hashPassword } from "@/utils/password.util.ts";
 import { ConflictError } from "@/errors/ConflictError.ts";
 import { NotFoundError } from "@/errors/NotFoundError.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 // Omit password field from returned user objects
 export const excludePassword = <TUser extends User, Key extends keyof TUser>(

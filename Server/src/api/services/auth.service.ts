@@ -9,7 +9,7 @@ import { LoginInput } from "@/api/validators/auth.validator.ts";
 import type { AuthenticatedUser } from "@/types/express/index.d.ts"; // Import payload type
 import { NotFoundError } from "@/errors/NotFoundError.ts";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 
 /**
  * Attempts to log in a user.
@@ -123,18 +123,18 @@ export const refreshAccessToken = async (providedRefreshToken: string): Promise<
 
         // --- Token is valid, issue new access token ---
         const accessPayload: AuthenticatedUser = { id: foundUser.id, role: foundUser.role };
-        const newAccessToken = jwt.sign(accessPayload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"]});
+        const newAccessToken = jwt.sign(accessPayload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"] });
 
         // --- Optional: Refresh Token Rotation ---
         // Generate a NEW refresh token, hash it, store it, and return it.
         // This invalidates the used refresh token, enhancing security.
-        const newRefreshToken = randomBytes(40).toString('hex');
+        const newRefreshToken = randomBytes(40).toString("hex");
         const newHashedRefreshToken = await hashPassword(newRefreshToken);
         await prisma.user.update({
             where: { id: foundUser.id },
             data: { refreshToken: newHashedRefreshToken },
         });
-        logger.debug({ userId: foundUser.id }, 'Rotated refresh token');
+        logger.debug({ userId: foundUser.id }, "Rotated refresh token");
         return { newAccessToken, newRefreshToken };
         // --- End Rotation ---
 

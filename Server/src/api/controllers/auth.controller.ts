@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import * as authService from "@/api/services/auth.service.ts";
 import { LoginInput } from "@/api/validators/auth.validator.ts";
 import env from "@/config/env.ts";
-import logger from "@/utils/logger.ts";
+import logger from "@/config/logger.ts";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
 
 export const loginHandler = async (req: Request<{}, {}, LoginInput>, res: Response, next: NextFunction) => {
@@ -48,11 +48,11 @@ export const refreshHandler = async (req: Request, res: Response, next: NextFunc
     }
 
     try {
-        const { newAccessToken , newRefreshToken } = await authService.refreshAccessToken(refreshToken);
+        const { newAccessToken, newRefreshToken } = await authService.refreshAccessToken(refreshToken);
 
         // --- If using Rotation + Cookies ---
         if (newRefreshToken) {
-            res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'strict', path: '/api/v1/auth' });
+            res.cookie("refreshToken", newRefreshToken, { httpOnly: true, secure: env.NODE_ENV === "production", sameSite: "strict", path: "/api/v1/auth" });
         }
         // --- End Rotation ---
 
