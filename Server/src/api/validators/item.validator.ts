@@ -39,6 +39,12 @@ import { z } from "zod";
  *           format: url
  *           nullable: true
  *           description: URL for the item's image
+ *          costPrice:
+ *              type: integer
+ *              format: int32
+ *              nullable: true
+ *              description: Optional cost price of the item
+ *              example: 20000
  *         categoryId:
  *           type: string
  *           format: cuid
@@ -173,7 +179,6 @@ import { z } from "zod";
  *         - error
  */
 
-
 export const createItemSchema = z.object({
     body: z.object({
         sku: z.string({ required_error: "SKU is required" }).min(1, "SKU cannot be empty"),
@@ -183,6 +188,7 @@ export const createItemSchema = z.object({
         lowStockThreshold: z.number().int().positive().optional().nullable(),
         imageUrl: z.string().url().optional().nullable(),
         categoryId: z.string({ required_error: "Category ID is required" }).cuid({ message: "Invalid Category ID format" }),
+        costPrice: z.number().int().positive().optional().nullable(),
     }),
 });
 
@@ -220,6 +226,6 @@ export const deleteItemSchema = z.object({
 });
 
 // Type helper for Create Item Input
-export type CreateItemInput = z.infer<typeof createItemSchema>['body'];
+export type CreateItemInput = z.infer<typeof createItemSchema>["body"];
 // Type helper for Update Item Input
-export type UpdateItemInput = z.infer<typeof updateItemSchema>['body'];
+export type UpdateItemInput = z.infer<typeof updateItemSchema>["body"];
