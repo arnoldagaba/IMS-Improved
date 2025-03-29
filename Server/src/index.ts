@@ -1,5 +1,6 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser"
 import { StatusCodes } from "http-status-codes";
 import swaggerUi from "swagger-ui-express";
 import { pinoHttp } from "pino-http";
@@ -43,6 +44,7 @@ app.use(
 );
 
 // --- Core Middleware ---
+app.use(cookieParser());
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
