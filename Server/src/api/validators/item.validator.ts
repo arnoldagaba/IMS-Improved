@@ -39,12 +39,12 @@ import { z } from "zod";
  *           format: url
  *           nullable: true
  *           description: URL for the item's image
- *          costPrice:
- *              type: integer
- *              format: int32
- *              nullable: true
- *              description: Optional cost price of the item
- *              example: 20000
+ *         costPrice:
+ *           type: integer
+ *           format: int32
+ *           nullable: true
+ *           description: Optional cost price of the item
+ *           example: 20000
  *         categoryId:
  *           type: string
  *           format: cuid
