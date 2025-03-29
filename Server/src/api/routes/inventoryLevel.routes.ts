@@ -150,4 +150,67 @@ router.get(
     inventoryLevelController.getSpecificInventoryLevelHandler,
 );
 
+/**
+ * @openapi
+ * /inventory-levels/low-stock:
+ *   get:
+ *     summary: Retrieve items at or below low stock threshold
+ *     tags: [Inventory Levels]
+ *     description: Returns a list of all inventory levels where the current quantity is less than or equal to the item's defined low stock threshold. Requires ADMIN or STAFF role.
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: A list of low stock inventory levels.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 # Define a specific schema or inline the expected structure
+ *                 type: object
+ *                 properties:
+ *                    id:
+ *                      type: string
+ *                      format: cuid
+ *                    quantity:
+ *                      type: integer
+ *                    itemId:
+ *                      type: string
+ *                      format: cuid
+ *                    locationId:
+ *                      type: string
+ *                      format: cuid
+ *                    updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                    item:
+ *                       type: object
+ *                       properties:
+ *                         id: { type: string, format: cuid }
+ *                         sku: { type: string }
+ *                         name: { type: string }
+ *                         unitOfMeasure: { type: string }
+ *                         lowStockThreshold: { type: integer }
+ *                    location:
+ *                       type: object
+ *                       properties:
+ *                          id: { type: string, format: cuid }
+ *                          name: { type: string }
+ *       '401':
+ *         description: Unauthorized.
+ *         content: { $ref: '#/components/responses/UnauthorizedError' } # Assuming you define common responses
+ *       '403':
+ *         description: Forbidden.
+ *         content: { $ref: '#/components/responses/ForbiddenError' }
+ *       '500':
+ *         description: Internal Server Error.
+ *         content: { $ref: '#/components/responses/InternalServerError' }
+ */
+router.get(
+    '/low-stock',
+    checkRole(commonRoles), // Allow ADMIN and STAFF
+    inventoryLevelController.getLowStockLevelsHandler
+);
+
 export default router;

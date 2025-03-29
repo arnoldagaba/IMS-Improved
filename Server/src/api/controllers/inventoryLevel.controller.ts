@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { Prisma } from "@prisma/client";
@@ -68,5 +67,15 @@ export const getSpecificInventoryLevelHandler = async (req: Request<{ itemId: st
         res.status(StatusCodes.OK).json(level);
     } catch (error) {
         next(error);
+    }
+};
+
+// Handler to get items at or below their low stock threshold
+export const getLowStockLevelsHandler = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+        const lowStockItems = await inventoryLevelService.findLowStockLevels();
+        res.status(StatusCodes.OK).json(lowStockItems);
+    } catch (error) {
+        next(error); // Pass errors to the central handler
     }
 };

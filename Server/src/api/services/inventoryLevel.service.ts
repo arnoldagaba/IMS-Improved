@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "@/config/prisma.ts";
+import logger from "@/utils/logger.ts";
 
 /**
  * Finds inventory levels based on optional filtering criteria.
@@ -47,3 +48,71 @@ export const findSpecificInventoryLevel = async (itemId: string, locationId: str
         },
     });
 };
+
+/**
+ * Finds all inventory levels where the quantity is at or below the item's low stock threshold.
+ * Only considers items where lowStockThreshold is set (not null).
+ * @returns Array of low stock inventory levels including item and location details.
+ */
+export const findLowStockLevels = async () => {
+    try {
+        const lowStockLevels = await prisma.inventoryLevel.findMany({
+            where: {
+                // Item must have a lowStockThreshold defined
+                item: {
+                    lowStockThreshold: {
+                        not: null, // Ensure threshold is set
+                    },
+                },
+            },
+            include: {
+                item: { // Include item details needed for comparison and display
+                    select: {
+                        id: true,
+                        sku: true,
+                        name: true,
+                        unitOfMeasure: true,
+                        lowStockThreshold: true // Need the threshold value
+                    }
+                },
+                location: { // Include location details
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+            },
+            orderBy: { // Order potentially by severity (how far below threshold) or item name
+                item: { name: 'asc' }
+            }
+        });
+
+        // Filter in application code: quantity <= lowStockThreshold
+        const filteredLowStock = lowStockLevels.filter(level =>
+            // level.item.lowStockThreshold should not be null here due to the 'where' clause, but check for safety
+            level.item.lowStockThreshold !== null && level.quantity <= level.item.lowStockThreshold
+        );
+
+        logger.info(`Found ${filteredLowStock.length} inventory levels at or below low stock threshold.`);
+        return filteredLowStock;
+
+    } catch (error) {
+        logger.error({ error }, "Error fetching low stock levels");
+        throw error; // Re-throw for central handling
+    }
+};
+
+// --- Potential Alternative using $queryRaw (more complex, DB-specific) ---
+// async function findLowStockLevelsRaw() {
+//    // NOTE: Requires careful handling of SQL injection if parameters were dynamic
+//    const result = await prisma.$queryRaw`
+//       SELECT il.*, i.sku, i.name, i.unitOfMeasure, i.lowStockThreshold, l.name as locationName
+//       FROM inventory_levels il
+//       JOIN items i ON il.itemId = i.id
+//       JOIN locations l ON il.locationId = l.id
+//       WHERE i.lowStockThreshold IS NOT NULL AND il.quantity <= i.lowStockThreshold
+//       ORDER BY i.name ASC;
+//    `;
+//    // Process the raw result into the desired object structure
+//    return result;
+// }

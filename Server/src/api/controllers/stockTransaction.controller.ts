@@ -13,7 +13,8 @@ export const createStockTransactionHandler = async (req: Request<{}, {}, CreateS
 
         if (!authenticatedUser) {
             // Should be caught by requireAuth, but belts and braces
-            return next(new AuthenticationError("User not authenticated."));
+            next(new AuthenticationError("User not authenticated."));
+            return;
         }
 
         // Override or set userId from the authenticated user

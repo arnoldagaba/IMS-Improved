@@ -47,6 +47,10 @@ model User {
   createdAt DateTime @default(now()) // Timestamp of creation
   updatedAt DateTime @updatedAt // Timestamp of last update
 
+  refreshToken         String?   @unique
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
   // Relation: A user can perform many stock transactions
   stockTransactions StockTransaction[]
 
@@ -76,6 +80,7 @@ model Item {
   unitOfMeasure     String // e.g., 'pcs', 'kg', 'liter', 'box'
   lowStockThreshold Int? // Optional threshold to trigger low stock warnings
   imageUrl          String? // URL for item image
+  costprice         Int?
 
   categoryId String // Foreign key for Category
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict, onUpdate: Cascade) // Relation to Category (Restrict delete if items exist)

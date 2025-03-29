@@ -19,7 +19,7 @@ export const createItemHandler = async (
 };
 
 // Controller to handle fetching all items
-export const getAllItemsHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllItemsHandler = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const items = await itemService.findAllItems();
         res.status(StatusCodes.OK).json(items);
