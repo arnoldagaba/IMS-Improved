@@ -114,3 +114,5 @@ signals.forEach((signal) => {
         });
     });
 });
+
+export default app;
