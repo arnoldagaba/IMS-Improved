@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { User } from "@prisma/client";
 import { randomBytes } from "crypto";
 import prisma from "@/config/prisma.ts";
+import { addMinutes } from "date-fns";
 import { findUserByUsernameOrEmail } from "./user.service.ts";
 import { comparePassword, hashPassword } from "@/utils/password.util.ts";
 import env from "@/config/env.ts";
@@ -10,6 +11,7 @@ import type { AuthenticatedUser } from "@/types/express/index.d.ts"; // Import p
 import { NotFoundError } from "@/errors/NotFoundError.ts";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
 import logger from "@/config/logger.ts";
+import { sendPasswordResetEmail } from "@/utils/mailer.ts";
 
 /**
  * Attempts to log in a user.
@@ -165,5 +167,108 @@ export const logoutUser = async (userId: string): Promise<void> => {
         // Log error but don't necessarily fail the logout operation for the client
         logger.error({ error, userId }, "Error clearing refresh token during logout");
         // We might still want the client to clear its tokens even if DB update fails
+    }
+};
+
+/**
+ * Initiates the password reset process for a user.
+ * Generates a reset token, stores its hash, and sets an expiry.
+ * **Does not actually send email.**
+ * @param email - The email address of the user requesting the reset.
+ * @returns The generated (non-hashed) reset token (for logging/simulation).
+ * @throws NotFoundError if email doesn't exist.
+ */
+export const requestPasswordReset = async (email: string): Promise<void> => {
+    // Return void now
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // --- Keep existing checks for user existence and activity ---
+    if (!user) {
+        logger.warn({ email }, "Password reset requested for non-existent email");
+        // Return silently - don't reveal if email exists
+        return;
+    }
+    if (!user.isActive) {
+        logger.warn({ userId: user.id, email }, "Password reset requested for inactive account.");
+        // Return silently
+        return;
+    }
+
+    const resetToken = randomBytes(32).toString("hex");
+    const hashedResetToken = await hashPassword(resetToken);
+    const resetExpires = addMinutes(new Date(), 15); // 15 minute expiry
+
+    try {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                passwordResetToken: hashedResetToken,
+                passwordResetExpires: resetExpires,
+            },
+        });
+
+        // --- Call the Email Sending Function ---
+        // We pass the ORIGINAL token, not the hashed one
+        await sendPasswordResetEmail(user.email, resetToken);
+        // Logging of success/failure is handled within sendPasswordResetEmail
+    } catch (dbError) {
+        logger.error({ error: dbError, userId: user.id }, "Failed to store password reset token");
+        // Don't throw error to client here, just log it. The user sees the generic message anyway.
+        // throw new Error('Password reset request failed. Please try again.'); // REMOVE or comment out
+    }
+};
+
+
+/**
+ * Resets a user's password using a valid reset token.
+ * @param token - The non-hashed password reset token received by the user.
+ * @param newPassword - The new password provided by the user.
+ * @returns Promise<void>
+ * @throws AuthenticationError if token is invalid or expired.
+ * @throws BadRequestError if password validation fails (implicitly via controller).
+ */
+export const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+    // 1. Hash the received token to compare with DB
+    // This is inefficient. Better: Find users with *any* reset token set.
+    const usersWithResetToken = await prisma.user.findMany({
+        where: { passwordResetToken: { not: null } },
+    });
+
+    let foundUser: User | null = null;
+
+    for (const user of usersWithResetToken) {
+        if (user.passwordResetToken) {
+            const isMatch = await comparePassword(token, user.passwordResetToken);
+            if (isMatch) {
+                foundUser = user;
+                break;
+            }
+        }
+    }
+
+    // 2. Check if user found and token not expired
+    if (!foundUser || !foundUser.passwordResetExpires || foundUser.passwordResetExpires < new Date()) {
+        logger.warn({ tokenHint: token.slice(0, 5) }, "Invalid or expired password reset token attempt");
+        throw new AuthenticationError("Password reset token is invalid or has expired.");
+    }
+
+    // 3. Hash the new password
+    const hashedNewPassword = await hashPassword(newPassword);
+
+    // 4. Update user's password and clear reset fields
+    try {
+        await prisma.user.update({
+            where: { id: foundUser.id },
+            data: {
+                password: hashedNewPassword,
+                passwordResetToken: null, // Clear token
+                passwordResetExpires: null, // Clear expiry
+                refreshToken: null, // Also clear refresh token forces re-login
+            },
+        });
+        logger.info({ userId: foundUser.id }, "Password reset successful.");
+    } catch (dbError) {
+        logger.error({ error: dbError, userId: foundUser.id }, "Failed to update password after reset");
+        throw new Error("Failed to reset password. Please try again.");
     }
 };

@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as authService from "@/api/services/auth.service.ts";
-import { LoginInput } from "@/api/validators/auth.validator.ts";
+import { ForgotPasswordInput, LoginInput, ResetPasswordInput } from "@/api/validators/auth.validator.ts";
 import env from "@/config/env.ts";
 import logger from "@/config/logger.ts";
 import { AuthenticationError } from "@/errors/AuthenticationError.ts";
+import { NotFoundError } from "@/errors/NotFoundError.ts";
 
 export const loginHandler = async (req: Request<{}, {}, LoginInput>, res: Response, next: NextFunction) => {
     try {
@@ -102,5 +103,41 @@ export const logoutHandler = async (req: Request, res: Response, next: NextFunct
         // Don't send error details to client on logout usually
         res.status(StatusCodes.OK).json({ message: "Logout completed." });
         next(error); // Or pass to global handler if needed
+    }
+};
+
+// --- Add forgotPasswordHandler ---
+export const forgotPasswordHandler = async (req: Request<{}, {}, ForgotPasswordInput>, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // Service handles logic, including logging simulated token
+        await authService.requestPasswordReset(req.body.email);
+
+        // Always return a generic success message to prevent email enumeration attacks
+        res.status(StatusCodes.OK).json({
+            message: "If an account with that email exists, a password reset link has been sent.",
+        });
+    } catch (error) {
+        // Log the actual error, but potentially return generic message unless it's a server fault
+        if (error instanceof NotFoundError || error instanceof AuthenticationError) {
+            logger.warn({ error, email: req.body.email }, "Handled error during forgot password request");
+            res.status(StatusCodes.OK).json({
+                message: "If an account with that email exists, a password reset link has been sent.",
+            });
+            return;
+        }
+        next(error); // Handle unexpected errors
+    }
+};
+
+// --- Add resetPasswordHandler ---
+export const resetPasswordHandler = async (req: Request<{}, {}, ResetPasswordInput>, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { token, password } = req.body;
+        await authService.resetPassword(token, password);
+
+        res.status(StatusCodes.OK).json({ message: "Password has been reset successfully." });
+    } catch (error) {
+        // AuthenticationError (invalid/expired token) handled by global handler
+        next(error);
     }
 };

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as authController from "@/api/controllers/auth.controller.ts";
 import { validateRequest } from "@/api/middleware/validateRequest.ts";
-import { loginSchema } from "@/api/validators/auth.validator.ts";
+import { forgotPasswordSchema, loginSchema, resetPasswordSchema } from "@/api/validators/auth.validator.ts";
 import { requireAuth } from "@/api/middleware/requireAuth.ts";
 
 const router = Router();
@@ -92,6 +92,95 @@ router.post('/refresh', authController.refreshHandler);
  *         description: Internal Server Error during logout process (client may still be considered logged out).
  *         content: { $ref: '#/components/responses/InternalServerError' } # Or just return 200 OK
  */
-router.post('/logout', requireAuth, authController.logoutHandler); // Protect logout route
+router.post('/logout', requireAuth, authController.logoutHandler);
+
+/**
+ * @openapi
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Authentication]
+ *     description: Initiates the password reset process by sending a reset token to the user's email (simulated).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *             required: [email]
+ *     responses:
+ *       '200':
+ *         description: Generic success response (prevents email enumeration).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       '400':
+ *         description: Bad Request - Invalid email format.
+ *         content: { $ref: '#/components/responses/BadRequestError' }
+ *       '500':
+ *         description: Internal Server Error.
+ *         content: { $ref: '#/components/responses/InternalServerError' }
+ */
+router.post(
+    '/forgot-password',
+    validateRequest(forgotPasswordSchema),
+    authController.forgotPasswordHandler
+);
+
+
+/**
+ * @openapi
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password using token
+ *     tags: [Authentication]
+ *     description: Sets a new password for the user account associated with the provided valid reset token.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: The password reset token received by the user.
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: The new password (meeting complexity requirements).
+ *             required: [token, password]
+ *     responses:
+ *       '200':
+ *         description: Password reset successful.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message: { type: string }
+ *       '400':
+ *         description: Bad Request - Invalid input (e.g., missing fields, weak password).
+ *         content: { $ref: '#/components/responses/BadRequestError' }
+ *       '401':
+ *         description: Unauthorized - Reset token is invalid or expired.
+ *         content: { $ref: '#/components/responses/UnauthorizedError' }
+ *       '500':
+ *         description: Internal Server Error.
+ *         content: { $ref: '#/components/responses/InternalServerError' }
+ */
+router.post(
+    '/reset-password',
+    validateRequest(resetPasswordSchema),
+    authController.resetPasswordHandler
+);
+
 
 export default router;
