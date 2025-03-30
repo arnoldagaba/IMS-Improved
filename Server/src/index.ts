@@ -99,7 +99,7 @@ app.use((_req: Request, res: Response, _next: NextFunction) => {
 app.use(errorHandler);
 
 // Start Server
-const server = app.listen(port, () => {
+const server = httpServer.listen(port, () => {
     logger.info(`[Server]: Server (HTTP + Socket.IO) is running at http://localhost:${port}`);
     logger.info(`Current environment: ${env.NODE_ENV}`);
 });
