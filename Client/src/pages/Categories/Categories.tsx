@@ -82,6 +82,7 @@ const CategoriesPage = (): JSX.Element => {
   const handleFormSubmit = async (data: CreateCategoryInput | UpdateCategoryInput) => {
     setIsSubmittingForm(true);
     toast.dismiss();
+    
     try {
       let message = '';
       if (categoryToEdit) {

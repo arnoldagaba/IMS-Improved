@@ -38,3 +38,13 @@ export interface Category {
     // Add _count if your API includes item counts, e.g.,
     _count?: { items: number };
 }
+
+export interface Location {
+    id: string;
+    name: string;
+    address?: string | null;
+    isPrimary: boolean;
+    createdAt: string;
+    updatedAt: string;
+     // Add _count if needed later
+}
