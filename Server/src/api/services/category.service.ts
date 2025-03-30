@@ -24,17 +24,19 @@ export const createCategory = async (data: CreateCategoryInput) => {
 };
 
 export const findAllCategories = async () => {
-    // Consider adding counts of items later: include: { _count: { select: { items: true } } }
     return await prisma.category.findMany({
         orderBy: { name: "asc" }, // Order alphabetically by name
+        include: { _count: { select: { items: true } } },
     });
 };
 
 export const findCategoryById = async (id: string) => {
     return await prisma.category.findUnique({
         where: { id },
-        // Optionally include items or item count if needed frequently
-        include: { items: { select: { id: true, name: true, sku: true }, take: 10 } },
+        include: { 
+            items: { select: { id: true, name: true, sku: true }, take: 10 }, 
+            _count: { select: { items: true } } 
+        },
     });
 };
 
