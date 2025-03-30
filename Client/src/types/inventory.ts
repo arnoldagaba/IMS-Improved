@@ -31,5 +31,10 @@ export interface PaginatedResponse<T> {
 
 export interface Category {
     id: string;
-    name: string /* other fields */;
+    name: string;
+    description?: string | null;
+    createdAt: string; // Assuming ISO string format
+    updatedAt: string; // Assuming ISO string format
+    // Add _count if your API includes item counts, e.g.,
+    _count?: { items: number };
 }
