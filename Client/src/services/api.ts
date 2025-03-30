@@ -34,9 +34,11 @@ apiClient.interceptors.request.use(
 let isRefreshing = false;
 let failedQueue: {
     resolve: (value: unknown) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     reject: (reason?: any) => void;
 }[] = [];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const processQueue = (error: any, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
@@ -99,6 +101,7 @@ apiClient.interceptors.response.use(
 
                 // Retry the original request
                 return apiClient(originalRequest);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (refreshError: any) {
                 // Refresh token failed (e.g., refresh token invalid/expired)
                 console.error("Token refresh failed:", refreshError);

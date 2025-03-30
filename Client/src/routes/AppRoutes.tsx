@@ -1,6 +1,5 @@
 import { JSX } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import { useAuthStore } from "@/stores/authStore";
+import { BrowserRouter, Routes, Route } from "react-router";
 
 // Layouts
 import MainLayout from "@/layouts/MainLayout";
@@ -10,50 +9,18 @@ import AuthLayout from "@/layouts/AuthLayout";
 import Login from "@/pages/Auth/Login";
 import Dashboard from "@/pages/Dashboard/Dashboard";
 import Items from "@/pages/Items/Items";
-import ItemDetail from "@/pages/Items/ItemDetail";
 import Categories from "@/pages/Categories/Categories";
 import Locations from "@/pages/Locations/Locations";
 import StockTransactions from "@/pages/Transactions/StockTransactions";
 import Reports from "@/pages/Reports/Reports";
 import Users from "@/pages/Admin/Users";
 import NotFound from "@/pages/NotFound";
+import AddItem from "@/pages/Items/AddItem";
+import EditItem from "@/pages/Items/EditItem";
+import ProtectedRoute from "./ProtectedRoute";
+import ItemDetail from "@/pages/Items/ItemDetail";
 
-// Protected Route Component
-interface ProtectedRouteProps {
-    children: React.ReactNode;
-    allowedRoles?: string[];
-}
-
-const ProtectedRoute = ({
-    children,
-    allowedRoles,
-}: ProtectedRouteProps): JSX.Element => {
-    const { isAuthenticated, user } = useAuthStore();
-
-    if (!isAuthenticated) {
-        // Redirect to login if not authenticated
-        return <Navigate to="/login" replace />;
-    }
-
-    // Check roles if specified
-    if (allowedRoles && allowedRoles.length > 0) {
-        if (!user?.role || !allowedRoles.includes(user.role)) {
-            // Redirect to an unauthorized page or dashboard if role not allowed
-            // For simplicity, redirecting to dashboard for now
-            console.warn(
-                `Access denied for role: ${user?.role}. Required: ${allowedRoles.join(
-                    ", "
-                )}`
-            );
-            return <Navigate to="/" replace />; // Or to a specific '/unauthorized' page
-        }
-    }
-
-    // User is authenticated and has the required role (if applicable)
-    return <>{children}</>;
-};
-
-const AppRouter = () => {
+const AppRouter = (): JSX.Element => {
     return (
         <BrowserRouter>
             <Routes>
@@ -75,19 +42,24 @@ const AppRouter = () => {
                 >
                     {/* Index route (dashboard) */}
                     <Route index element={<Dashboard />} />
+
                     {/* Item Management */}
                     <Route path="items" element={<Items />} />
                     <Route path="items/:id" element={<ItemDetail />} />
-                    {/* Example detail route */}
-                    {/* Add create/edit item routes if they are separate pages */}
+                    <Route path="items/new" element={<AddItem />} />
+                    <Route path="items/edit/:id" element={<EditItem />} />
+
                     {/* Categories (Assume STAFF can view, ADMIN can manage - handled by API) */}
                     <Route path="categories" element={<Categories />} />
+
                     {/* Locations (Assume STAFF can view, ADMIN can manage - handled by API) */}
                     <Route path="locations" element={<Locations />} />
+
                     {/* Inventory & Transactions */}
                     <Route path="inventory" element={<StockTransactions />} />
                     {/* Combine view? Or separate pages */}
                     {/* Maybe rename path to "transactions"? */}
+
                     {/* Reports (Protected by Role) */}
                     <Route
                         path="reports"
@@ -98,7 +70,6 @@ const AppRouter = () => {
                             </ProtectedRoute>
                         }
                     />
-
                     {/* Admin Section (Protected by Role) */}
                     <Route
                         path="admin/users"

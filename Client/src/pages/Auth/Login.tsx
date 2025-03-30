@@ -31,6 +31,7 @@ const Login = (): JSX.Element => {
             toast.success(`Welcome back, ${user.username || user.email}!`);
             // Navigate to dashboard after successful login
             navigate('/', { replace: true }); // Navigate happens automatically via ProtectedRoute check
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error("Login failed:", error);
             const errorMsg =
