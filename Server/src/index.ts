@@ -1,5 +1,7 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import cors from "cors";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cookieParser from "cookie-parser";
@@ -27,7 +29,7 @@ export const io = new SocketIOServer(httpServer, {
         credentials: true, // Allow cookies if needed for auth
     },
     // Add other options like path, transports if needed
-    // path: '/socket.io',
+    path: "/socket.io",
 });
 
 // --- Request Logging Middleware ---
@@ -58,6 +60,8 @@ app.use(
 );
 
 // --- Core Middleware ---
+app.use(helmet());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -95,7 +99,7 @@ app.use((_req: Request, res: Response, _next: NextFunction) => {
 app.use(errorHandler);
 
 // Start Server
-const server = app.listen(port, () => {
+const server = httpServer.listen(port, () => {
     logger.info(`[Server]: Server (HTTP + Socket.IO) is running at http://localhost:${port}`);
     logger.info(`Current environment: ${env.NODE_ENV}`);
 });

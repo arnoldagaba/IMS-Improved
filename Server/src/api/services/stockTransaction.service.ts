@@ -1,6 +1,6 @@
 import prisma from "@/config/prisma.ts";
-import { Prisma, TransactionType, InventoryLevel, User, Item, Location } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma, TransactionType,/* InventoryLevel, User, Item, Location */} from "@prisma/client";
+// import { Decimal } from "@prisma/client/runtime/library";
 import logger from "@/config/logger.ts"; // Import the logger
 import { CreateStockTransactionInput, GetStockTransactionsQuery } from "@/api/validators/stockTransaction.validator.ts";
 import { io } from "@/index.ts";
